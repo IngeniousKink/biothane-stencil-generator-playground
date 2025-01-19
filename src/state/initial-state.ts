@@ -1,6 +1,6 @@
 // Portions of this file are Copyright 2021 Google LLC, and licensed under GPL2+. See COPYING.
 
-import defaultScad from './default-scad.ts';
+import defaultSources from './default-sources.ts';
 import { State } from './app-state.ts';
 
 export const defaultSourcePath = '/playground.scad';
@@ -19,22 +19,27 @@ export function createInitialState(state: State | null, source?: {content?: stri
     if (source) throw new Error('Cannot provide source when state is provided');
     initialState = state;
   } else {
-    let content, path, url, blurhash;
+    let sources, activePath, blurhash;
+
     if (source) {
+      let content, path, url;
+
       content = source.content;
       path = source.path;
       url = source.url;
       blurhash = source.blurhash;
+
+      activePath = path ?? (url && new URL(url).pathname.split('/').pop()) ?? defaultSourcePath;
+      sources = [{path: activePath, content, url}];
     } else {
-      content = defaultScad;
-      path = defaultSourcePath;
-      blurhash = defaultBlurhash;
+      sources = defaultSources;
+      activePath = defaultSources[0].path;
     }
-    let activePath = path ?? (url && new URL(url).pathname.split('/').pop()) ?? defaultSourcePath;
+
     initialState = {
       params: {
         activePath,
-        sources: [{path: activePath, content, url}],
+        sources,
         features: [],
         exportFormat2D: 'svg',
         exportFormat3D: 'glb',
